@@ -18,7 +18,7 @@ public class Client extends User{
 
     @Column(unique = true)
     private String badgeRFID;
-    private double solde;
+    private double solde=0.0;
 
 
 }
