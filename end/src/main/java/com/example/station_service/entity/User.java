@@ -2,8 +2,11 @@ package com.example.station_service.entity;
 
 import com.example.station_service.entity.enums.UserRole;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -12,6 +15,8 @@ import java.util.Date;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public abstract class User {
 
     @Id
