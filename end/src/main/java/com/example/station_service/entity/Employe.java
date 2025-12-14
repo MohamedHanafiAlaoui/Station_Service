@@ -17,5 +17,5 @@ import lombok.ToString;
 public class Employe extends User{
     @Enumerated(EnumType.STRING)
 
-    private RoleEmploye role;
+    private RoleEmploye roleEmp;
 }
