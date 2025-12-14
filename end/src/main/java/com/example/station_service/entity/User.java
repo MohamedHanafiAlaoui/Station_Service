@@ -1,5 +1,6 @@
 package com.example.station_service.entity;
 
+import com.example.station_service.entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,5 +28,7 @@ public class User {
     @Column(nullable = false)
     private String password;
     private Boolean actif = true;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
 }
