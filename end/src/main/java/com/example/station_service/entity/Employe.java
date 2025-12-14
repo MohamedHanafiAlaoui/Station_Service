@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "Employes")
+@Table(name = "employes")
 @PrimaryKeyJoinColumn(name = "user_id")
 @Data
 @NoArgsConstructor
