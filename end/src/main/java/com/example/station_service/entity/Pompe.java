@@ -34,6 +34,7 @@ public class Pompe {
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
 
+
     public boolean isDisponible()
     {
         return  Boolean.TRUE.equals(enService) && niveauActuel > 0;
