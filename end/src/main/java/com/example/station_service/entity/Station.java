@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "station")
@@ -35,4 +36,10 @@ public class Station {
         this.datecreation = LocalDateTime.now();
     }
 
+    @OneToMany(
+            mappedBy = "station",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Pompe> pompes;
 }
