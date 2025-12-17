@@ -37,11 +37,7 @@ public class Station {
         this.datecreation = LocalDateTime.now();
     }
 
-    @OneToMany(
-            mappedBy = "station",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "station")
     private List<Pompe> pompes;
 
     @OneToMany(
