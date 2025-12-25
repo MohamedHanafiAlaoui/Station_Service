@@ -18,4 +18,8 @@ public class Employe extends User{
     @Enumerated(EnumType.STRING)
 
     private RoleEmploye roleEmp;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id", nullable = false)
+    private Station station;
 }

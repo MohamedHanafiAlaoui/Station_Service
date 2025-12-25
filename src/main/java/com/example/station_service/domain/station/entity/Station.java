@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,4 +39,12 @@ public class Station {
 
     @OneToMany(mappedBy = "station")
     private List<Pompe> pompes;
+
+    @OneToMany(
+            mappedBy = "station",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Employe> employes = new ArrayList<>();
+
 }
