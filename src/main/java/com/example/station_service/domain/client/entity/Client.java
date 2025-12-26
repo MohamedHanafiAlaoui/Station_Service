@@ -1,5 +1,6 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.client.entity;
 
+import com.example.station_service.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
@@ -15,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @AllArgsConstructor
 @SuperBuilder
-public class Client extends User{
+public class Client extends User {
 
     @Column(unique = true)
     private String badgeRFID;

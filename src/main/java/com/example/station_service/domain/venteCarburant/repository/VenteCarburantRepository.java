@@ -1,6 +1,6 @@
-package com.example.station_service.repository;
+package com.example.station_service.domain.venteCarburant.repository;
 
-import com.example.station_service.entity.enums.MondePaiment;
+import com.example.station_service.domain.venteCarburant.entity.VenteCarburant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +14,4 @@ public interface VenteCarburantRepository extends JpaRepository<VenteCarburant,L
 
     List<VenteCarburant> findByClientId(Long clientId);
 
-    List<VenteCarburant> findByModePaiement(MondePaiment modePaiement);
 }

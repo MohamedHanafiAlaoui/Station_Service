@@ -1,6 +1,7 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.pompe.entity;
 
-import com.example.station_service.entity.enums.TypeCarburant;
+import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
+import com.example.station_service.domain.station.entity.Station;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

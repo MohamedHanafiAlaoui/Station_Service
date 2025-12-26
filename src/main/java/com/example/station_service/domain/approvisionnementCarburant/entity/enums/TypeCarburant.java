@@ -1,4 +1,4 @@
-package com.example.station_service.entity.enums;
+package com.example.station_service.domain.approvisionnementCarburant.entity.enums;
 
 public enum TypeCarburant {
     ESSENCE,

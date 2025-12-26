@@ -1,6 +1,6 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.Employe.dto;
 
-import com.example.station_service.entity.enums.RoleEmploye;
+import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

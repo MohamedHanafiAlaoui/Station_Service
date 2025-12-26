@@ -1,15 +1,14 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.user.entity;
 
-import com.example.station_service.entity.enums.UserRole;
+import com.example.station_service.domain.user.entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)

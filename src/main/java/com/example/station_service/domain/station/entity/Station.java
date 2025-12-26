@@ -1,5 +1,7 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.station.entity;
 
+import com.example.station_service.domain.Employe.entity.Employe;
+import com.example.station_service.domain.pompe.entity.Pompe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
