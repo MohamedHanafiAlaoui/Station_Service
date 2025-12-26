@@ -1,4 +1,4 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.client.dto;
 
 import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.Pattern;

@@ -1,6 +1,9 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.venteCarburant.entity;
 
-import com.example.station_service.entity.enums.MondePaiment;
+import com.example.station_service.domain.Employe.entity.Employe;
+import com.example.station_service.domain.client.entity.Client;
+import com.example.station_service.domain.pompe.entity.Pompe;
+import com.example.station_service.domain.station.entity.Station;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +27,7 @@ public class VenteCarburant {
     private Double  montantPaye;
     private Double quantite;
     private Double  prixUnitaire;
-    private MondePaiment modePaiement;
+//    private MondePaiment modePaiement;
     private String  statut;
 
     @ManyToOne(fetch = FetchType.LAZY)

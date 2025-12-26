@@ -1,6 +1,6 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.rapport.dto;
 
-import com.example.station_service.entity.enums.TypeRapport;
+import com.example.station_service.domain.rapport.entity.enums.TypeRapport;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

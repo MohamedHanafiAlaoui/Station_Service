@@ -1,6 +1,6 @@
 package com.example.station_service.dto;
 
-import com.example.station_service.entity.enums.TypeCarburant;
+import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.*;
 import lombok.Data;

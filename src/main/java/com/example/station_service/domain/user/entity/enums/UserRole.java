@@ -1,4 +1,4 @@
-package com.example.station_service.entity.enums;
+package com.example.station_service.domain.user.entity.enums;
 
 public enum UserRole {
     CLIENT,

@@ -1,5 +1,6 @@
-package com.example.station_service.repository;
+package com.example.station_service.domain.pompe.repository;
 
+import com.example.station_service.domain.pompe.entity.Pompe;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

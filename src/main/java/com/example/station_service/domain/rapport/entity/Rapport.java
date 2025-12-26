@@ -1,6 +1,7 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.rapport.entity;
 
-import com.example.station_service.entity.enums.TypeRapport;
+import com.example.station_service.domain.Employe.entity.Employe;
+import com.example.station_service.domain.rapport.entity.enums.TypeRapport;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,6 @@
-package com.example.station_service.service;
+package com.example.station_service.domain.station.service;
+
+import com.example.station_service.domain.station.dto.StationDto;
 
 public abstract class StationService {
 

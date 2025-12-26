@@ -1,6 +1,8 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.Employe.entity;
 
-import com.example.station_service.entity.enums.RoleEmploye;
+import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
+import com.example.station_service.domain.station.entity.Station;
+import com.example.station_service.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -14,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @AllArgsConstructor
 @SuperBuilder
-public class Employe extends User{
+public class Employe extends User {
     @Enumerated(EnumType.STRING)
 
     private RoleEmploye roleEmp;

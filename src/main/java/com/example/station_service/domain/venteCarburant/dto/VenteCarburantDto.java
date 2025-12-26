@@ -1,6 +1,5 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.venteCarburant.dto;
 
-import com.example.station_service.entity.enums.MondePaiment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,8 +20,8 @@ public class VenteCarburantDto {
     @Positive
     private Double prixUnitaire;
 
-    @NotNull
-    private MondePaiment modePaiement;
+//    @NotNull
+//    private MondePaiment modePaiement;
 
     @NotBlank
     @Size(max = 30)

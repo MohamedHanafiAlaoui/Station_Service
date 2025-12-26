@@ -1,5 +1,6 @@
-package com.example.station_service.entity;
+package com.example.station_service.domain.admin.entity;
 
+import com.example.station_service.domain.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
@@ -12,7 +13,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @ToString(callSuper = true)
-@AllArgsConstructor
 @SuperBuilder
-public class Admin extends User{
+public class Admin extends User {
 }

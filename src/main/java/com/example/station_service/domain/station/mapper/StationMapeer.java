@@ -1,4 +1,4 @@
-package com.example.station_service.mapper;
+package com.example.station_service.domain.station.mapper;
 
 import org.mapstruct.Mapper;
 

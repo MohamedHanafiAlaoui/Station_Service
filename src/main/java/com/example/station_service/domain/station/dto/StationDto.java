@@ -1,4 +1,4 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.station.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
