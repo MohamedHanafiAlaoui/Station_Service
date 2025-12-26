@@ -5,5 +5,5 @@ public enum RoleEmploye {
     CAISSIER,
     RESPONSABLE_STOCK,
     ADMINISTRATEUR,
-    CHAUFFEUR
+
 }
