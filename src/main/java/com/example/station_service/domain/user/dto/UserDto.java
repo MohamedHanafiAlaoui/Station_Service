@@ -1,26 +1,38 @@
 package com.example.station_service.domain.user.dto;
 
+import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
 import com.example.station_service.domain.user.entity.enums.UserRole;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
 
-@Data
-public class UserDto {
-    private Long id;
-    @NotBlank
-    @Pattern(regexp = RegexPatterns.USERNAME)
-    private String username;
-    @NotBlank
-    @Pattern(regexp = RegexPatterns.NAME)
-    private String nom;
-    @NotBlank
-    @Pattern(regexp = RegexPatterns.NAME)
-    private String prenom;
-    @NotNull
-    private Boolean actif;
-    @NotNull
-    private UserRole role;
-}
+
+
+public record UserDto(
+        @NotBlank
+        @Pattern(regexp = RegexPatterns.USERNAME)
+        String username,
+
+        @NotBlank
+        @Pattern(regexp = RegexPatterns.NAME)
+        String nom,
+
+        @NotBlank
+        @Pattern(regexp = RegexPatterns.NAME)
+        String prenom,
+
+        Boolean actif,
+
+        @NotNull
+        UserRole role
+        ,
+        RoleEmploye roleEmploye,
+
+        Long stationId,
+
+        @NotNull
+        String password
+
+
+) {}
