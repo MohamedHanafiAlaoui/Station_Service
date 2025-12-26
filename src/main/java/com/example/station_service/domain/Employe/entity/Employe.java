@@ -18,10 +18,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Employe extends User {
     @Enumerated(EnumType.STRING)
-
+    @Column(nullable = false)
     private RoleEmploye roleEmp;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "station_id", nullable = false)
+    @JoinColumn(name = "station_id", nullable = true)
     private Station station;
 }
