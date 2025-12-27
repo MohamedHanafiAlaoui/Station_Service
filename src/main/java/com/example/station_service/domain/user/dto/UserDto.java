@@ -1,11 +1,12 @@
 package com.example.station_service.domain.user.dto;
 
-import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
 import com.example.station_service.domain.user.entity.enums.UserRole;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+
 import org.hibernate.validator.constraints.NotBlank;
+
 
 
 
@@ -27,7 +28,7 @@ public record UserDto(
         @NotNull
         UserRole role
         ,
-        RoleEmploye roleEmploye,
+
 
         Long stationId,
 

@@ -1,8 +1,6 @@
 package com.example.station_service.domain.Employe.dto;
 
-import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
@@ -16,6 +14,5 @@ public class EmployeDto {
     @NotBlank
     @Pattern(regexp = RegexPatterns.USERNAME)
     private String prenom;
-    @NotNull
-    private RoleEmploye roleEmp;
+
 }

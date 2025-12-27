@@ -2,6 +2,9 @@ package com.example.station_service.domain.user.entity.enums;
 
 public enum UserRole {
     CLIENT,
-    EMPLOYE,
+    GERANT,
+    CAISSIER,
+    RESPONSABLE_STOCK,
+    ADMINISTRATEUR,
     ADMIN
 }

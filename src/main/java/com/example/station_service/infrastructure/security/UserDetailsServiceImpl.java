@@ -2,6 +2,7 @@ package com.example.station_service.infrastructure.security;
 
 import com.example.station_service.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,7 +20,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 ()-> new RuntimeException("User with username :" + username+" was not found")
         );
 
-        return org.springframework.security.core.userdetails.User
+        return User
                 .builder()
                 .username(user.getUsername())
                 .password(user.getPassword())

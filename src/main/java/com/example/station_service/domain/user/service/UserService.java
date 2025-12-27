@@ -6,9 +6,9 @@ import java.util.Optional;
 
 public interface  UserService {
 
-    UserDto registerUser(UserDto request);
+    String registerUser(UserDto request);
 
-    UserDto registerUserEmploye(UserDto request);
+    String registerUserEmploye(UserDto request);
 
 
     Optional<UserDto> findByUsername(String username);

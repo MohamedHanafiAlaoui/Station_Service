@@ -1,6 +1,5 @@
 package com.example.station_service.domain.Employe.entity;
 
-import com.example.station_service.domain.Employe.entity.enums.RoleEmploye;
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -17,9 +16,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public class Employe extends User {
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RoleEmploye roleEmp;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id", nullable = true)
