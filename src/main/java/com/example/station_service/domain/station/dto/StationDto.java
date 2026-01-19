@@ -14,7 +14,6 @@ public class StationDto {
     @NotBlank
     @Size(min = 5, max = 100)
     private String adresse;
-    @NotNull
     private boolean active;
 }
 

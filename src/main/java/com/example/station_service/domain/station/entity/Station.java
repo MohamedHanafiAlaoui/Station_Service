@@ -3,10 +3,7 @@ package com.example.station_service.domain.station.entity;
 import com.example.station_service.domain.Employe.entity.Employe;
 import com.example.station_service.domain.pompe.entity.Pompe;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,7 +11,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "station")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
