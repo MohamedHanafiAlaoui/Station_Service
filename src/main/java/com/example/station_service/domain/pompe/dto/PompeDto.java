@@ -1,4 +1,4 @@
-package com.example.station_service.dto;
+package com.example.station_service.domain.pompe.dto;
 
 import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
 import com.example.station_service.infrastructure.validation.RegexPatterns;
