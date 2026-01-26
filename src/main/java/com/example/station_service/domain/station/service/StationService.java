@@ -1,17 +1,33 @@
 package com.example.station_service.domain.station.service;
 
 import com.example.station_service.domain.station.dto.StationDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 
+import java.util.List;
 
-public abstract class StationService {
 
-    public void createStation(StationDto dto){};
+public interface StationService {
 
-    public  StationDto getStationId(Long id){
-        return null;
-    };
-    
+     void createStation(StationDto dto);
+
+      StationDto getStationId(Long id);
+
+      List<StationDto> getAllStations();
+
+      List<StationDto> getActiveStations();
+      List<StationDto> getInactiveStations();
+
+      long countActiveStations();
+
+     List<StationDto> searchStations(String keyword);
+
+      long countInactiveStations();
+
+      List<StationDto> searchActiveStations(String keyword);
+
+      StationDto updateStation(Long id, StationDto dto);
+
+      void deleteStation(Long id);
+
+
 }

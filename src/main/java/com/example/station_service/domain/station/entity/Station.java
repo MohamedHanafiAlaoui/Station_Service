@@ -29,12 +29,12 @@ public class Station {
     private boolean active = true;
 
 
-    private LocalDateTime datecreation;
+    private LocalDateTime dateCreation;
 
 
     @PrePersist
     protected void onCreate() {
-        this.datecreation = LocalDateTime.now();
+        this.dateCreation = LocalDateTime.now();
     }
 
     @OneToMany(mappedBy = "station")

@@ -14,7 +14,7 @@ public interface StationMapper {
 
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "datecreation", ignore = true)
+    @Mapping(target = "dateCreation", ignore = true)
     @Mapping(target = "pompes", ignore = true)
     @Mapping(target = "employes", ignore = true)
  Station toEntity(StationDto dto);

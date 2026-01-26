@@ -12,8 +12,8 @@ public interface StationRepository extends JpaRepository<Station,Long>
     List<Station> findByNom(String nom);
     List<Station> findByActiveTrue();
     List<Station> findByActiveFalse();
-    Long countByActiveTrue();
-    Long countByActiveFalse();
+    long countByActiveTrue();
+    long countByActiveFalse();
     List<Station> findByNomContainingIgnoreCase(String keyword);
-    List<Station> findByNomContainingIgnoreCaseAndActiveTrue(String nom);
+    List<Station> findByNomContainingIgnoreCaseAndActiveTrue(String keyword);
 }

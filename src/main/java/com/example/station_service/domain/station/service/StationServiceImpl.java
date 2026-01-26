@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StationServiceImpl extends  StationService{
+public class StationServiceImpl implements   StationService{
 
 
     private final StationRepository stationRepository;
@@ -31,5 +31,5 @@ public class StationServiceImpl extends  StationService{
     }
 
 
-    
+
 }
