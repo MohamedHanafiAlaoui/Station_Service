@@ -10,7 +10,7 @@ public interface StationService {
 
      void createStation(StationDto dto);
 
-      StationDto getStationId(Long id);
+      StationDto getStationById(Long id);
 
       List<StationDto> getAllStations();
 
@@ -27,7 +27,7 @@ public interface StationService {
 
       StationDto updateStation(Long id, StationDto dto);
 
-      void deleteStation(Long id);
+      void deleteStation(Long id,boolean active);
 
 
 }
