@@ -20,8 +20,6 @@ public class VenteCarburantDto {
     @Positive
     private Double prixUnitaire;
 
-//    @NotNull
-//    private MondePaiment modePaiement;
 
     @NotBlank
     @Size(max = 30)
@@ -30,8 +28,6 @@ public class VenteCarburantDto {
     @NotNull
     private Long pompeId;
 
-    @NotNull
-    private Long employeId;
 
     private Long clientId;
 }
