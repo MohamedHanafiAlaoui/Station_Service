@@ -1,10 +1,7 @@
 package com.example.station_service.domain.client.entity;
 
 import com.example.station_service.domain.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -20,6 +17,9 @@ public class Client extends User {
 
     @Column(unique = true)
     private String badgeRFID;
+
+    @Enumerated(EnumType.STRING)
+    private  BadgeType badgeType;
     private double solde=0.0;
 
 
