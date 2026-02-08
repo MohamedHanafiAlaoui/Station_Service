@@ -4,18 +4,22 @@ import com.example.station_service.domain.approvisionnementCarburant.entity.enum
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ApprovisionnementCarburantDto {
 
     private Long id;
 
-    @Positive
+    @NotNull
+    @Positive(message = "La quantité doit être positive")
     private Double quantite;
 
-    @NotNull
+    @NotNull(message = "Le type de carburant est obligatoire")
     private TypeCarburant typeCarburant;
 
-    @NotNull
+    @NotNull(message = "L'identifiant de la station est obligatoire")
     private Long stationId;
 }
