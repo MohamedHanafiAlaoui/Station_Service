@@ -7,10 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-@Table(name = "venteCarburant")
+@Table(name = "journal_audit")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,11 +21,11 @@ public class JournalAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date dateAction ;
+    private LocalDateTime dateAction ;
     private String typeAction ;
-    private String Description ;
+    private String description ;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
 
