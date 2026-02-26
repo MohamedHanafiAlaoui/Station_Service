@@ -1,5 +1,6 @@
 package com.example.station_service.domain.journalAudit.service;
 
+import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
 import com.example.station_service.domain.journalAudit.entity.JournalAudit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,13 +9,14 @@ import java.time.LocalDateTime;
 
 public interface JournalAuditService {
 
-    Page<JournalAudit> getAllJournal(Pageable pageable);
 
-    Page<JournalAudit> getByStationAndPeriod(Long stationId, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<JournalAuditDto> getAllJournal(Pageable pageable);
 
-    Page<JournalAudit> getByPeriod(LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<JournalAuditDto> getByStationAndPeriod(Long stationId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    Page<JournalAudit> getByTypeActionAndPeriod(String typeAction, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<JournalAuditDto> getByPeriod(LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    JournalAudit createJournal(JournalAudit journalAudit);
+    Page<JournalAuditDto> getByTypeActionAndPeriod(String typeAction, LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+    void createJournal(JournalAuditDto dto);
 }

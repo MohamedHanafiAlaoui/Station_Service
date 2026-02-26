@@ -1,5 +1,7 @@
 package com.example.station_service.domain.pompe.service;
 
+import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
+import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import com.example.station_service.domain.pompe.dto.PompeDto;
 import com.example.station_service.domain.pompe.entity.Pompe;
 import com.example.station_service.domain.pompe.mapper.PompeMapper;
@@ -8,22 +10,29 @@ import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PompeServiceImpl implements  PompeService{
+public class PompeServiceImpl implements PompeService {
 
     private final PompeRepository pompeRepository;
     private final PompeMapper pompeMapper;
     private final StationRepository stationRepository;
+    private final JournalAuditService journalAuditService;
 
     @Override
     public void createPompe(PompeDto dto) {
         Pompe pompe = pompeMapper.toEntity(dto);
-        pompeRepository.save(pompe);
-    }
+        Pompe saved = pompeRepository.save(pompe);
 
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("CREATE_POMPE");
+        audit.setDescription("Création de la pompe: " + saved.getCodePompe());
+        audit.setStationId(saved.getStation().getId());
+        journalAuditService.createJournal(audit);
+    }
 
     @Override
     public PompeDto getPompeById(Long id) {
@@ -40,7 +49,6 @@ public class PompeServiceImpl implements  PompeService{
                 .toList();
     }
 
-
     @Override
     public List<PompeDto> getActivePompes() {
         return pompeRepository.findByEnServiceTrue()
@@ -48,7 +56,6 @@ public class PompeServiceImpl implements  PompeService{
                 .map(pompeMapper::toDto)
                 .toList();
     }
-
 
     @Override
     public List<PompeDto> getPompesByStation(Long stationId) {
@@ -66,7 +73,6 @@ public class PompeServiceImpl implements  PompeService{
                 .toList();
     }
 
-
     @Override
     public PompeDto updatePompe(Long id, PompeDto dto) {
         Pompe pompe = pompeRepository.findById(id)
@@ -83,75 +89,92 @@ public class PompeServiceImpl implements  PompeService{
             var station = stationRepository.findById(dto.getStationId())
                     .orElseThrow(() -> new IllegalArgumentException("Station not found: " + dto.getStationId()));
             pompe.setStation(station);
-        } else {
-            pompe.setStation(null);
         }
 
-        return pompeMapper.toDto(pompeRepository.save(pompe));
+        Pompe updated = pompeRepository.save(pompe);
 
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("UPDATE_POMPE");
+        audit.setDescription("Mise à jour de la pompe: " + updated.getCodePompe());
+        audit.setStationId(updated.getStation().getId());
+        journalAuditService.createJournal(audit);
+
+        return pompeMapper.toDto(updated);
     }
 
     @Override
     public List<PompeDto> filterByNiveau(double niveau) {
-        return pompeRepository.findByNiveauActuelGreaterThan(niveau)
-                .stream()
+        BigDecimal niv = BigDecimal.valueOf(niveau);
+
+        return pompeRepository.findAll().stream()
+                .filter(p -> p.getNiveauActuel().compareTo(niv) > 0)
                 .map(pompeMapper::toDto)
                 .toList();
     }
 
+    @Override
+    public void deletePompe(Long id, boolean enService) {
+        Pompe pompe = pompeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
 
+        pompe.setEnService(enService);
+        pompeRepository.save(pompe);
 
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction(enService ? "ACTIVATE_POMPE" : "DEACTIVATE_POMPE");
+        audit.setDescription((enService ? "Activation" : "Désactivation") + " de la pompe: " + pompe.getCodePompe());
+        audit.setStationId(pompe.getStation().getId());
+        journalAuditService.createJournal(audit);
+    }
 
+    @Override
+    public long countActivePompes() {
+        return pompeRepository.findByEnServiceTrue().size();
+    }
 
-@Override
-public void deletePompe(Long id, boolean enService) {
-    Pompe pompe = pompeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
-    pompe.setEnService(enService);
-    pompeRepository.save(pompe);
-}
+    @Override
+    public PompeDto updatePompesell(Long id, double sele) {
+        Pompe pompe = pompeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
 
-@Override
-public long countActivePompes() {
-    return pompeRepository.findByEnServiceTrue().size();
-}
+        BigDecimal seleBD = BigDecimal.valueOf(sele);
 
- @Override
- public  PompeDto updatePompesell(Long id, double sele)
- {
-     Pompe pompe = pompeRepository.findById(id)
-             .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
+        if (pompe.getNiveauActuel().compareTo(seleBD) < 0) {
+            throw new IllegalArgumentException("Pompe " + id + " has insufficient level: " + pompe.getNiveauActuel());
+        }
 
-     if (pompe.getNiveauActuel() < sele) {
-         throw new IllegalArgumentException("Pompe " + id + " has insufficient level: " + pompe.getNiveauActuel());
-     }
+        pompe.setNiveauActuel(pompe.getNiveauActuel().subtract(seleBD));
+        Pompe updated = pompeRepository.save(pompe);
 
-     pompe.setNiveauActuel(pompe.getNiveauActuel() - sele);
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("POMPE_SELL");
+        audit.setDescription("Retrait de " + sele + " litres de la pompe " + pompe.getCodePompe());
+        audit.setStationId(pompe.getStation().getId());
+        journalAuditService.createJournal(audit);
 
+        return pompeMapper.toDto(updated);
+    }
 
-     return pompeMapper.toDto(pompeRepository.save(pompe));
+    @Override
+    public PompeDto updatePompeAddNive(Long id, double nive) {
+        Pompe pompe = pompeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
 
+        BigDecimal niveBD = BigDecimal.valueOf(nive);
 
- }
+        if (pompe.getCapaciteMax().compareTo(pompe.getNiveauActuel().add(niveBD)) < 0) {
+            throw new IllegalArgumentException("Pompe " + id + " cannot exceed maximum capacity: " + pompe.getCapaciteMax());
+        }
 
- @Override
- public      PompeDto updatePompeAddNive(Long id, double nive)
- {
-     Pompe pompe = pompeRepository.findById(id)
-             .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
-     if (pompe.getCapaciteMax()  >= pompe.getNiveauActuel() + nive)
-     {
-         throw new IllegalArgumentException("Pompe " + id + " cannot exceed maximum capacity: " + pompe.getCapaciteMax());
-     }
+        pompe.setNiveauActuel(pompe.getNiveauActuel().add(niveBD));
+        Pompe updated = pompeRepository.save(pompe);
 
-     pompe.setNiveauActuel(pompe.getNiveauActuel() + nive);
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("POMPE_ADD_LEVEL");
+        audit.setDescription("Ajout de " + nive + " litres à la pompe " + pompe.getCodePompe());
+        audit.setStationId(pompe.getStation().getId());
+        journalAuditService.createJournal(audit);
 
-     return pompeMapper.toDto(pompeRepository.save(pompe));
-
-
- }
-
-
-
-
+        return pompeMapper.toDto(updated);
+    }
 }

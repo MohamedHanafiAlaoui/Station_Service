@@ -4,6 +4,8 @@ import com.example.station_service.domain.approvisionnementCarburant.dto.Approvi
 import com.example.station_service.domain.approvisionnementCarburant.entity.ApprovisionnementCarburant;
 import com.example.station_service.domain.approvisionnementCarburant.mapper.ApprovisionnementCarburantMapper;
 import com.example.station_service.domain.approvisionnementCarburant.repository.ApprovisionnementCarburantRepository;
+import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
+import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,8 @@ public class ApprovisionnementCarburantServiceImpl implements ApprovisionnementC
     private final ApprovisionnementCarburantRepository repository;
     private final StationRepository stationRepository;
     private final ApprovisionnementCarburantMapper mapper;
+    private final JournalAuditService journalAuditService;
+
 
     @Override
     public ApprovisionnementCarburantDto create(ApprovisionnementCarburantDto dto) {
@@ -29,7 +33,18 @@ public class ApprovisionnementCarburantServiceImpl implements ApprovisionnementC
                 .orElseThrow(() -> new RuntimeException("Station not found"));
         entity.setStation(station);
         entity.setDateApprovisionnement(LocalDate.now());
+
         ApprovisionnementCarburant saved = repository.save(entity);
+
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("APPROVISIONNEMENT_CARBURANT");
+        audit.setDescription(
+                "Approvisionnement de " + saved.getQuantite() + " litres (" + saved.getTypeCarburant() + ")"
+        );
+        audit.setStationId(station.getId());
+
+        journalAuditService.createJournal(audit);
+
         return mapper.toDto(saved);
     }
 

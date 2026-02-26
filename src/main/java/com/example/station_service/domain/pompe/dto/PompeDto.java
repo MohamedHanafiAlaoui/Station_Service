@@ -5,6 +5,8 @@ import com.example.station_service.infrastructure.validation.RegexPatterns;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class PompeDto {
 
@@ -17,14 +19,17 @@ public class PompeDto {
     @NotNull
     private TypeCarburant typeCarburant;
 
+    @NotNull
     @Positive
-    private double capaciteMax;
+    private BigDecimal capaciteMax;
 
+    @NotNull
     @PositiveOrZero
-    private double niveauActuel;
+    private BigDecimal niveauActuel;
 
+    @NotNull
     @Positive
-    private double prixParLitre;
+    private BigDecimal prixParLitre;
 
     @NotNull
     private Boolean enService;

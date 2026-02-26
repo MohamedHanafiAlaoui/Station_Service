@@ -2,17 +2,15 @@ package com.example.station_service.domain.journalAudit.entity;
 
 import com.example.station_service.domain.station.entity.Station;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
 @Table(name = "journal_audit")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

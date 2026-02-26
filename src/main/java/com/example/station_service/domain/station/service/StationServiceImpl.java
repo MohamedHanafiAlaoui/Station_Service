@@ -1,5 +1,7 @@
 package com.example.station_service.domain.station.service;
 
+import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
+import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import com.example.station_service.domain.station.dto.StationDto;
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.mapper.StationMapper;
@@ -16,12 +18,20 @@ public class StationServiceImpl implements   StationService{
 
     private final StationRepository stationRepository;
     private final StationMapper stationMapper;
+    private final JournalAuditService journalAuditService;
+
 
     @Override
     public  void createStation(StationDto dto)
     {
         Station entity = stationMapper.toEntity(dto);
-        stationRepository.save(entity);
+        Station saved = stationRepository.save(entity);
+
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("CREATE_STATION");
+        audit.setDescription("Création de la station: " + saved.getNom());
+        audit.setStationId(saved.getId());
+        journalAuditService.createJournal(audit);
 
     }
     @Override
@@ -94,12 +104,14 @@ public class StationServiceImpl implements   StationService{
     public StationDto updateStation(Long id, StationDto dto) {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Station not found: " + id));
-
-
         station.setNom(dto.getNom());
         station.setActive(dto.isActive());
-
-        return stationMapper.toDto(stationRepository.save(station));
+        Station updated = stationRepository.save(station);
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("UPDATE_STATION");
+        audit.setDescription("Mise à jour de la station: " + updated.getNom());
+        audit.setStationId(updated.getId()); journalAuditService.createJournal(audit);
+        return stationMapper.toDto(updated);
 
     }
 
@@ -108,9 +120,12 @@ public class StationServiceImpl implements   StationService{
     public void deleteStation(Long id, boolean active) {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Station not found: " + id));
-
-        station.setActive(active);
-        stationRepository.save(station);
+        station.setActive(active); stationRepository.save(station);
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction(active ? "ACTIVATE_STATION" : "DEACTIVATE_STATION");
+        audit.setDescription((active ? "Activation" : "Désactivation") + " de la station: " + station.getNom());
+        audit.setStationId(station.getId());
+        journalAuditService.createJournal(audit);
     }
 
 
