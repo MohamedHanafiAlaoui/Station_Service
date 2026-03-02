@@ -26,4 +26,5 @@ public class Client extends User {
 
     @Column(nullable = false)
     private BigDecimal solde = BigDecimal.ZERO;
+
 }
