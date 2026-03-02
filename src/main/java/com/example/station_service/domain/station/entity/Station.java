@@ -8,7 +8,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 @Entity
 @Table(name = "station")
 @Getter
@@ -16,20 +15,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class Station {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String nom;
-    private  String adresse;
+
+    private String adresse;
 
     @Column(nullable = false)
     private boolean active = true;
 
-
     private LocalDateTime dateCreation;
+
 
 
     @PrePersist
@@ -40,11 +41,6 @@ public class Station {
     @OneToMany(mappedBy = "station")
     private List<Pompe> pompes;
 
-    @OneToMany(
-            mappedBy = "station",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Employe> employes = new ArrayList<>();
-
 }
