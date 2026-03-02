@@ -132,28 +132,6 @@ public class PompeServiceImpl implements PompeService {
         return pompeRepository.findByEnServiceTrue().size();
     }
 
-    @Override
-    public PompeDto updatePompesell(Long id, double sele) {
-        Pompe pompe = pompeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
-
-        BigDecimal seleBD = BigDecimal.valueOf(sele);
-
-        if (pompe.getNiveauActuel().compareTo(seleBD) < 0) {
-            throw new IllegalArgumentException("Pompe " + id + " has insufficient level: " + pompe.getNiveauActuel());
-        }
-
-        pompe.setNiveauActuel(pompe.getNiveauActuel().subtract(seleBD));
-        Pompe updated = pompeRepository.save(pompe);
-
-        JournalAuditDto audit = new JournalAuditDto();
-        audit.setTypeAction("POMPE_SELL");
-        audit.setDescription("Retrait de " + sele + " litres de la pompe " + pompe.getCodePompe());
-        audit.setStationId(pompe.getStation().getId());
-        journalAuditService.createJournal(audit);
-
-        return pompeMapper.toDto(updated);
-    }
 
     @Override
     public PompeDto updatePompeAddNive(Long id, double nive) {

@@ -23,7 +23,6 @@ public interface PompeService {
 
     void deletePompe(Long id, boolean enService);
 
-    PompeDto updatePompesell(Long id, double sell);
 
 
     PompeDto updatePompeAddNive(Long id, double nive);

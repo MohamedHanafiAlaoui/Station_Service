@@ -4,7 +4,7 @@ import com.example.station_service.domain.pompe.dto.PompeDto;
 import com.example.station_service.domain.pompe.service.PompeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,79 +16,91 @@ public class PompeController {
 
     private final PompeService pompeService;
 
+    // ADMIN ONLY
     @PostMapping
-    public ResponseEntity<PompeDto> createPompe(@Validated @RequestBody PompeDto dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PompeDto> createPompe(@RequestBody PompeDto dto) {
         pompeService.createPompe(dto);
         return ResponseEntity.ok(dto);
     }
 
+    // ADMIN + EMPLOYE (محطته فقط)
     @GetMapping("/{id}")
+    @PreAuthorize(
+            "hasRole('ADMIN') or " +
+                    "(hasRole('EMPLOYE') and @securityService.isUserOfStation(authentication, @pompeService.getStationIdByPompe(#id)))"
+    )
     public ResponseEntity<PompeDto> getPompe(@PathVariable Long id) {
-        PompeDto dto = pompeService.getPompeById(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(pompeService.getPompeById(id));
     }
 
+    // ADMIN ONLY
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PompeDto>> getAllPompes() {
-        List<PompeDto> pompes = pompeService.getAllPompes();
-        return ResponseEntity.ok(pompes);
+        return ResponseEntity.ok(pompeService.getAllPompes());
     }
 
+    // ADMIN + EMPLOYE
     @GetMapping("/active")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYE')")
     public ResponseEntity<List<PompeDto>> getActivePompes() {
-        List<PompeDto> pompes = pompeService.getActivePompes();
-        return ResponseEntity.ok(pompes);
+        return ResponseEntity.ok(pompeService.getActivePompes());
     }
 
     @GetMapping("/station/{stationId}")
+    @PreAuthorize(
+            "hasRole('ADMIN') or " +
+                    "(hasRole('EMPLOYE') and @securityService.isUserOfStation(authentication, #stationId))"
+    )
     public ResponseEntity<List<PompeDto>> getPompesByStation(@PathVariable Long stationId) {
-        List<PompeDto> pompes = pompeService.getPompesByStation(stationId);
-        return ResponseEntity.ok(pompes);
+        return ResponseEntity.ok(pompeService.getPompesByStation(stationId));
     }
 
+    // ADMIN ONLY
     @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PompeDto>> searchPompes(@RequestParam String keyword) {
-        List<PompeDto> pompes = pompeService.searchPompes(keyword);
-        return ResponseEntity.ok(pompes);
+        return ResponseEntity.ok(pompeService.searchPompes(keyword));
     }
 
+    // ADMIN ONLY
     @PutMapping("/{id}")
-    public ResponseEntity<PompeDto> updatePompe(@PathVariable Long id,
-                                                @RequestBody PompeDto dto) {
-        PompeDto updated = pompeService.updatePompe(id, dto);
-        return ResponseEntity.ok(updated);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PompeDto> updatePompe(@PathVariable Long id, @RequestBody PompeDto dto) {
+        return ResponseEntity.ok(pompeService.updatePompe(id, dto));
     }
 
+    // ADMIN ONLY
     @PatchMapping("/{id}")
-    public ResponseEntity<Void> deletePompe(@PathVariable Long id,
-                                            @RequestParam(defaultValue = "false") boolean enService) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deletePompe(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean enService) {
         pompeService.deletePompe(id, enService);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/sell")
-    public ResponseEntity<PompeDto> sellFuel(@PathVariable Long id,
-                                             @RequestParam double quantity) {
-        PompeDto updated = pompeService.updatePompesell(id, quantity);
-        return ResponseEntity.ok(updated);
-    }
+
 
     @PatchMapping("/{id}/add")
-    public ResponseEntity<PompeDto> addFuel(@PathVariable Long id,
-                                            @RequestParam double quantity) {
-        PompeDto updated = pompeService.updatePompeAddNive(id, quantity);
-        return ResponseEntity.ok(updated);
+    @PreAuthorize(
+            "hasRole('ADMIN') or " +
+                    "(hasRole('EMPLOYE') and @securityService.isUserOfStation(authentication, @pompeService.getStationIdByPompe(#id)))"
+    )
+    public ResponseEntity<PompeDto> addFuel(@PathVariable Long id, @RequestParam double quantity) {
+        return ResponseEntity.ok(pompeService.updatePompeAddNive(id, quantity));
     }
 
+    // ADMIN ONLY
     @GetMapping("/filter/niveau")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PompeDto>> filterByNiveau(@RequestParam double niveau) {
-        List<PompeDto> pompes = pompeService.filterByNiveau(niveau);
-        return ResponseEntity.ok(pompes);
+        return ResponseEntity.ok(pompeService.filterByNiveau(niveau));
     }
 
+    // ADMIN ONLY
     @GetMapping("/count/active")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> countActivePompes() {
-        long count = pompeService.countActivePompes();
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok(pompeService.countActivePompes());
     }
 }
