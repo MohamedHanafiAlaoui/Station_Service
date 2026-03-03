@@ -1,33 +1,34 @@
 package com.example.station_service.domain.station.service;
 
 import com.example.station_service.domain.station.dto.StationDto;
-
+import com.example.station_service.domain.station.dto.StationPublicDto;
 
 import java.util.List;
 
-
 public interface StationService {
 
-     void createStation(StationDto dto);
+ void createStation(StationDto dto);
 
-      StationDto getStationById(Long id);
+ StationDto getStationById(Long id);
 
-      List<StationDto> getAllStations();
+ List<StationDto> getAllStations();
 
-      List<StationDto> getActiveStations();
-      List<StationDto> getInactiveStations();
+ List<StationDto> getActiveStations();
 
-      long countActiveStations();
+ List<StationDto> getInactiveStations();
 
-     List<StationDto> searchStations(String keyword);
+ long countActiveStations();
 
-      long countInactiveStations();
+ long countInactiveStations();
 
-      List<StationDto> searchActiveStations(String keyword);
+ List<StationDto> searchStations(String keyword);
 
-      StationDto updateStation(Long id, StationDto dto);
+ List<StationDto> searchActiveStations(String keyword);
 
-      void deleteStation(Long id,boolean active);
+ StationDto updateStation(Long id, StationDto dto);
 
+ void deleteStation(Long id, boolean active);
+
+ List<StationPublicDto> getAllStationsPublic();
 
 }

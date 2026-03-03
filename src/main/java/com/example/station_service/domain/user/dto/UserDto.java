@@ -33,6 +33,8 @@ public record UserDto(
         Long stationId,
 
         @NotNull
+        @Pattern(regexp = RegexPatterns.PASSWORD)
+
         String password
 
 

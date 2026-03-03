@@ -72,7 +72,6 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
         VenteCarburant entity = mapper.toEntity(venteDTO);
 
-        // --- Pompe ---
         if (venteDTO.getPompeId() == null) {
             throw new RuntimeException("PompeId is required");
         }
@@ -80,7 +79,6 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
                 .orElseThrow(() -> new RuntimeException("Pompe not found"));
         entity.setPompe(pompe);
 
-        // --- Client ---
         if (venteDTO.getClientId() == null) {
             throw new RuntimeException("ClientId is required");
         }
@@ -92,17 +90,15 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
         badgeRuleFactory
                 .getRule(client.getBadgeType())
-                .validate(client, entity, montant);
+                .validate(client, entity.getQuantite(), montant);
 
         if (client.getBadgeType() == BadgeType.GOLD) {
             client.setSolde(client.getSolde().subtract(montant));
             clientRepository.save(client);
         }
 
-        // --- Save vente ---
         VenteCarburant saved = venteCarburantRepository.save(entity);
 
-        // --- Audit ---
         JournalAuditDto audit = new JournalAuditDto();
         audit.setTypeAction("VENTE_CARBURANT");
         audit.setDescription("Vente de " + saved.getQuantite() + " litres via pompe " + pompe.getCodePompe());
@@ -111,4 +107,5 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
         return mapper.toDto(saved);
     }
+
 }

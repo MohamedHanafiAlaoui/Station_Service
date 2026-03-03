@@ -2,7 +2,7 @@ package com.example.station_service.domain.user.service;
 
 import com.example.station_service.domain.Employe.entity.Employe;
 import com.example.station_service.domain.Employe.repository.EmployeRepository;
-import com.example.station_service.domain.admin.repository.AdminRepository;
+import com.example.station_service.domain.client.entity.BadgeType;
 import com.example.station_service.domain.client.entity.Client;
 import com.example.station_service.domain.client.repository.ClientRepository;
 import com.example.station_service.domain.station.entity.Station;
@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -46,6 +47,11 @@ public class UserServiceImpl implements  UserService  {
                 .role(UserRole.CLIENT)
                 .prenom(request.prenom())
                 .password(passwordEncoder.encode(request.password()))
+                .solde(BigDecimal.ZERO)
+                .badgeRFID(null)
+                .badgeType(BadgeType.NORMAL)
+
+
                 .build();
         clientRepository.save(client);
 
