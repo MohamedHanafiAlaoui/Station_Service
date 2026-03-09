@@ -34,7 +34,7 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
     @Override
     public Page<VenteCarburantDto> getVentesByStationAndPeriod(Long stationId, LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        return venteCarburantRepository.findByStation_IdAndDateVenteBetween(stationId, start, end, pageable)
+        return venteCarburantRepository.findByClientIdAndDateVenteBetween(stationId, start, end, pageable)
                 .map(mapper::toDto);
     }
 
@@ -52,7 +52,7 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
     @Override
     public BigDecimal getTotalQuantiteByStationAndPeriod(Long stationId, LocalDateTime start, LocalDateTime end) {
-        return venteCarburantRepository.findByStation_IdAndDateVenteBetween(stationId, start, end, Pageable.unpaged())
+        return venteCarburantRepository.findByClientIdAndDateVenteBetween(stationId, start, end, Pageable.unpaged())
                 .stream()
                 .map(VenteCarburant::getQuantite)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -60,7 +60,7 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
 
     @Override
     public BigDecimal getTotalMontantByStationAndPeriod(Long stationId, LocalDateTime start, LocalDateTime end) {
-        return venteCarburantRepository.findByStation_IdAndDateVenteBetween(stationId, start, end, Pageable.unpaged())
+        return venteCarburantRepository.findByClientIdAndDateVenteBetween(stationId, start, end, Pageable.unpaged())
                 .stream()
                 .map(VenteCarburant::getMontantPaye)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

@@ -11,6 +11,8 @@ import org.hibernate.validator.constraints.NotBlank;
 
 
 public record UserDto(
+         Long id,
+
         @NotBlank
         @Pattern(regexp = RegexPatterns.USERNAME)
         String username,

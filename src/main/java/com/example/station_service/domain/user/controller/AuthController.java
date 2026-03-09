@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -67,9 +68,12 @@ public class AuthController {
                 .findAny()
                 .orElse("");
 
+        Optional<UserDto> user = userService.findByUsername(userDetails.getUsername());
+        Long id = user.map(UserDto::id).orElse(null);                ;
 
 
-        return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), roles ));
+
+        return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), roles,id));
 
     }
 }
