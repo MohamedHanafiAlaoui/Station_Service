@@ -1,5 +1,4 @@
 package com.example.station_service.infrastructure.security;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -12,58 +11,49 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import java.util.Date;
 import java.util.stream.Collectors;
-
 @Component
 public class JwtUtils {
-
     private final UserService userService;
     @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
     private String secret;
-
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
-
     public JwtUtils(UserService userService) {
         this.userService = userService;
     }
-
-
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
         var roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-
         UserDto user = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow();
-
+        Long stationId = null;
+        if (roles.contains("ROLE_EMPLOYE")) {
+            stationId = userService.findEmployeByUserId(user.id())
+                    .map(e -> e.stationId())
+                    .orElse(null);
+        }
         return JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuer("everest-app")
                 .withClaim("roles", roles)
                 .withClaim("id", user.id())
+                .withClaim("stationId", stationId)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
                 .sign(Algorithm.HMAC256(secret));
     }
-
-
     public String validateTokenAndGetUsername(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
-
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer("everest-app")
                     .build();
-
             DecodedJWT decodedJWT = verifier.verify(token);
-
             return decodedJWT.getSubject();
-
         } catch (JWTVerificationException exception) {
             throw new RuntimeException("Token invalide ou expiré");
         }

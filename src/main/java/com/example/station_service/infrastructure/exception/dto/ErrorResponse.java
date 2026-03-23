@@ -1,11 +1,8 @@
 package com.example.station_service.infrastructure.exception.dto;
-
 import lombok.Builder;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.Map;
-
 @Data
 @Builder
 public class ErrorResponse {

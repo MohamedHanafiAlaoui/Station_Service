@@ -1,5 +1,4 @@
 package com.example.station_service.domain.venteCarburant.controller;
-
 import com.example.station_service.domain.venteCarburant.dto.VenteCarburantDto;
 import com.example.station_service.domain.venteCarburant.service.VenteCarburantService;
 import lombok.RequiredArgsConstructor;
@@ -9,18 +8,15 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/api/ventes")
 @RequiredArgsConstructor
 public class VenteCarburantController {
-
     private final VenteCarburantService venteService;
-
-    // ADMIN + EMPLOYE (محطته فقط)
     @GetMapping("/station/{stationId}")
     @PreAuthorize(
             "hasRole('ADMIN') or " +
@@ -28,16 +24,16 @@ public class VenteCarburantController {
     )
     public ResponseEntity<Page<VenteCarburantDto>> getVentesByStation(
             @PathVariable Long stationId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam String start,
+            @RequestParam String end,
             Pageable pageable
     ) {
+        LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+        LocalDate endDate = LocalDate.parse(end.substring(0, 10));
         return ResponseEntity.ok(
-                venteService.getVentesByStationAndPeriod(stationId, start, end, pageable)
+                venteService.getVentesByStationAndPeriod(stationId, startDate, endDate, pageable)
         );
     }
-
-    // ADMIN + EMPLOYE (محطته فقط)
     @GetMapping("/station/{stationId}/pompe/{pompeId}")
     @PreAuthorize(
             "hasRole('ADMIN') or " +
@@ -46,32 +42,32 @@ public class VenteCarburantController {
     public ResponseEntity<Page<VenteCarburantDto>> getVentesByStationAndPompe(
             @PathVariable Long stationId,
             @PathVariable Long pompeId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam String start,
+            @RequestParam String end,
             Pageable pageable
     ) {
+        LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+        LocalDate endDate = LocalDate.parse(end.substring(0, 10));
         return ResponseEntity.ok(
-                venteService.getVentesByStationAndPompeAndPeriod(stationId, pompeId, start, end, pageable)
+                venteService.getVentesByStationAndPompeAndPeriod(stationId, pompeId, startDate, endDate, pageable)
         );
     }
-
-    // CLIENT → يرى مبيعاته فقط
     @GetMapping("/client/{clientId}")
     @PreAuthorize(
             "hasRole('CLIENT') and @securityService.isClientOwner(authentication, #clientId)"
     )
     public ResponseEntity<Page<VenteCarburantDto>> getVentesByClient(
             @PathVariable Long clientId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam String start,
+            @RequestParam String end,
             Pageable pageable
     ) {
+        LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+        LocalDate endDate = LocalDate.parse(end.substring(0, 10));
         return ResponseEntity.ok(
-                venteService.getVentesByClientAndPeriod(clientId, start, end, pageable)
+                venteService.getVentesByClientAndPeriod(clientId, startDate, endDate, pageable)
         );
     }
-
-    // ADMIN + EMPLOYE (محطته فقط)
     @GetMapping("/station/{stationId}/total-quantite")
     @PreAuthorize(
             "hasRole('ADMIN') or " +
@@ -79,15 +75,15 @@ public class VenteCarburantController {
     )
     public ResponseEntity<BigDecimal> getTotalQuantite(
             @PathVariable Long stationId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+            @RequestParam String start,
+            @RequestParam String end
     ) {
+        LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+        LocalDate endDate = LocalDate.parse(end.substring(0, 10));
         return ResponseEntity.ok(
-                venteService.getTotalQuantiteByStationAndPeriod(stationId, start, end)
+                venteService.getTotalQuantiteByStationAndPeriod(stationId, startDate, endDate)
         );
     }
-
-    // ADMIN + EMPLOYE (محطته فقط)
     @GetMapping("/station/{stationId}/total-montant")
     @PreAuthorize(
             "hasRole('ADMIN') or " +
@@ -95,11 +91,18 @@ public class VenteCarburantController {
     )
     public ResponseEntity<BigDecimal> getTotalMontant(
             @PathVariable Long stationId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+            @RequestParam String start,
+            @RequestParam String end
     ) {
+        LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+        LocalDate endDate = LocalDate.parse(end.substring(0, 10));
         return ResponseEntity.ok(
-                venteService.getTotalMontantByStationAndPeriod(stationId, start, end)
+                venteService.getTotalMontantByStationAndPeriod(stationId, startDate, endDate)
         );
+    }
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<VenteCarburantDto>> getAllVentes(Pageable pageable) {
+        return ResponseEntity.ok(venteService.getAllVentes(pageable));
     }
 }

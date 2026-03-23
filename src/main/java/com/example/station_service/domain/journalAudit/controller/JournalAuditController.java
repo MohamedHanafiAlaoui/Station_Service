@@ -1,5 +1,4 @@
 package com.example.station_service.domain.journalAudit.controller;
-
 import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
 import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import lombok.RequiredArgsConstructor;
@@ -9,22 +8,19 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-
+import java.time.LocalTime;
 @RestController
 @RequestMapping("/api/journals")
 @RequiredArgsConstructor
 public class JournalAuditController {
-
     private final JournalAuditService journalService;
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<JournalAuditDto>> getAllJournal(Pageable pageable) {
         return ResponseEntity.ok(journalService.getAllJournal(pageable));
     }
-
     @GetMapping("/station/{stationId}")
     @PreAuthorize(
             "hasRole('ADMIN') or " +
@@ -32,37 +28,41 @@ public class JournalAuditController {
     )
     public ResponseEntity<Page<JournalAuditDto>> getByStationAndPeriod(
             @PathVariable Long stationId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             Pageable pageable
     ) {
+        LocalDateTime startDT = start.atStartOfDay();
+        LocalDateTime endDT = end.atTime(LocalTime.MAX);
         return ResponseEntity.ok(
-                journalService.getByStationAndPeriod(stationId, start, end, pageable)
+                journalService.getByStationAndPeriod(stationId, startDT, endDT, pageable)
         );
     }
-
     @GetMapping("/period")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<JournalAuditDto>> getByPeriod(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             Pageable pageable
     ) {
+        LocalDateTime startDT = start.atStartOfDay();
+        LocalDateTime endDT = end.atTime(LocalTime.MAX);
         return ResponseEntity.ok(
-                journalService.getByPeriod(start, end, pageable)
+                journalService.getByPeriod(startDT, endDT, pageable)
         );
     }
-
     @GetMapping("/type")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<JournalAuditDto>> getByTypeActionAndPeriod(
             @RequestParam String typeAction,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             Pageable pageable
     ) {
+        LocalDateTime startDT = start.atStartOfDay();
+        LocalDateTime endDT = end.atTime(LocalTime.MAX);
         return ResponseEntity.ok(
-                journalService.getByTypeActionAndPeriod(typeAction, start, end, pageable)
+                journalService.getByTypeActionAndPeriod(typeAction, startDT, endDT, pageable)
         );
     }
 }
