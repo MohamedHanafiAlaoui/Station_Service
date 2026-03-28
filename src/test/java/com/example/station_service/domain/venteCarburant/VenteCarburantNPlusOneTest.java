@@ -21,8 +21,6 @@ public class VenteCarburantNPlusOneTest {
 
     @Test
     public void testFetchSalesWithEntityGraph() {
-        // This test ensures the repository methods can be called. 
-        // In a real environment with SQL logging enabled, we would check that only one query is generated.
         var result = repository.findByStationIdAndDateVenteBetween(
                 1L, 
                 LocalDateTime.now().minusDays(1), 
