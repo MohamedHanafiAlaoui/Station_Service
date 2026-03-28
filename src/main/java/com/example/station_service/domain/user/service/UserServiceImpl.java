@@ -8,6 +8,7 @@ import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
 import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.repository.StationRepository;
+import com.example.station_service.domain.user.dto.ChangePasswordRequest;
 import com.example.station_service.domain.user.dto.UserDto;
 import com.example.station_service.domain.user.dto.Usernom;
 import com.example.station_service.domain.user.entity.User;
@@ -19,8 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
@@ -66,29 +69,44 @@ public class UserServiceImpl implements  UserService  {
         return "Nom et prénom mis à jour avec succès";
     }
     @Override
-   public String registerUserEmploye(UserDto request)
-   {
-       Station station = null;
-       if (request.role() == UserRole.ADMIN || request.role() == UserRole.CLIENT)
-       {
-           throw new   IllegalArgumentException("Role must be EMPLOYE  for this method");
-       }
-       if (request.stationId() != null) {
-            station = stationRepository.findById(request.stationId())
-                    .orElseThrow( () -> new  IllegalArgumentException( "Station not found"));
-       }
-       Employe employe = Employe.builder()
-               .nom(request.nom())
-               .username(request.username())
-               .actif(true)
-               .role(request.role())
-               .prenom(request.prenom())
-               .password(passwordEncoder.encode(request.password()))
-               .station(station)
-               .build();
-       employeRepository.save(employe);
-       return "Employe registered successfully";
-   }
+    public UserDto registerUserEmploye(UserDto request)
+    {
+        Station station = null;
+        if (request.role() == UserRole.ADMIN || request.role() == UserRole.CLIENT)
+        {
+            throw new   IllegalArgumentException("Role must be EMPLOYE  for this method");
+        }
+
+        if (request.stationId() != null) {
+             station = stationRepository.findById(request.stationId())
+                     .orElseThrow( () -> new  IllegalArgumentException( "Station not found"));
+        }
+        
+        String generatedPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
+        Employe employe = Employe.builder()
+                .nom(request.nom())
+                .username(request.username())
+                .actif(true)
+                .role(request.role())
+                .prenom(request.prenom())
+                .password(passwordEncoder.encode(generatedPassword))
+                .station(station)
+                .build();
+        
+        Employe saved = employeRepository.save(employe);
+        
+        return new UserDto(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getNom(),
+                saved.getPrenom(),
+                saved.getActif(),
+                saved.getRole(),
+                saved.getStation() != null ? saved.getStation().getId() : null,
+                generatedPassword
+        );
+    }
     @Override
     public Optional<UserDto> findByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -132,6 +150,30 @@ public class UserServiceImpl implements  UserService  {
         audit.setStationId(employe.getStation() != null ? employe.getStation().getId() : null);
         journalAuditService.createJournal(audit);
     }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        User user = userRepository.findByUsername(request.username())
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
+
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new SecurityException("La modification du mot de passe Administrateur n'est plus autorisée par l'application.");
+        }
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("L'ancien mot de passe est incorrect");
+        }
+
+        if (user.getDateCreation() == null) {
+            user.setDateCreation(LocalDateTime.now());
+        }
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+        
+        log.info(">>> Password changed for user: {}", request.username());
+    }
+
     @Override
     @Transactional
     public void restoreEmploye(Long id) {
@@ -145,5 +187,21 @@ public class UserServiceImpl implements  UserService  {
         audit.setDescription("Réactivation de l'employé: " + employe.getNom() + " " + employe.getPrenom());
         audit.setStationId(employe.getStation() != null ? employe.getStation().getId() : null);
         journalAuditService.createJournal(audit);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
+
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new SecurityException("La réinitialisation du mot de passe Administrateur n'est pas autorisée.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        log.info(">>> Password manually reset by admin for user: {}", user.getUsername());
     }
 }

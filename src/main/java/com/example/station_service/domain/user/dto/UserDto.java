@@ -20,7 +20,5 @@ public record UserDto(
         UserRole role
         ,
         Long stationId,
-        @NotNull
-        @Pattern(regexp = RegexPatterns.PASSWORD)
         String password
 ) {}
