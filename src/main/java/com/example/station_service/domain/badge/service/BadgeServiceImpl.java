@@ -11,6 +11,7 @@ import com.example.station_service.domain.venteCarburant.entity.StatutVente;
 import com.example.station_service.domain.venteCarburant.entity.VenteCarburant;
 import com.example.station_service.domain.venteCarburant.mapper.VenteCarburantMapper;
 import com.example.station_service.domain.venteCarburant.repository.VenteCarburantRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -32,7 +33,7 @@ public class BadgeServiceImpl implements BadgeService {
         return rfid;
     }
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public String assignNewBadge(Long clientId) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client not found: " + clientId));
