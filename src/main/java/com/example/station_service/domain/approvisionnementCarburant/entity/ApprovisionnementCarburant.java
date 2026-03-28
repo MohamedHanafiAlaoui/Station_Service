@@ -17,6 +17,8 @@ public class ApprovisionnementCarburant {
     private Long id ;
     private LocalDate dateApprovisionnement ;
     private Double quantite;
+    private Double quantiteDisponible;
+    private Double niveauAvant;
     private Double niveauApres;
     @Enumerated(EnumType.STRING)
     private TypeCarburant typeCarburant;
