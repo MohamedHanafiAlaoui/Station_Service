@@ -1,22 +1,33 @@
 package com.example.station_service.domain.pompe.service;
+import com.example.station_service.domain.approvisionnementCarburant.entity.ApprovisionnementCarburant;
+import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
+import com.example.station_service.domain.approvisionnementCarburant.repository.ApprovisionnementCarburantRepository;
+import com.example.station_service.domain.approvisionnementCarburant.service.ApprovisionnementCarburantService;
 import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
 import com.example.station_service.domain.journalAudit.service.JournalAuditService;
 import com.example.station_service.domain.pompe.dto.PompeDto;
 import com.example.station_service.domain.pompe.entity.Pompe;
 import com.example.station_service.domain.pompe.mapper.PompeMapper;
 import com.example.station_service.domain.pompe.repository.PompeRepository;
+import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+@Slf4j
 @Service("pompeService")
 @RequiredArgsConstructor
 public class PompeServiceImpl implements PompeService {
+
     private final PompeRepository pompeRepository;
     private final PompeMapper pompeMapper;
     private final StationRepository stationRepository;
     private final JournalAuditService journalAuditService;
+    private final ApprovisionnementCarburantRepository approvisionnementCarburantRepository;
+    private final ApprovisionnementCarburantService approvisionnementCarburantService;
     @Override
     public PompeDto createPompe(PompeDto dto) {
         long nextId = 1L;
@@ -117,47 +128,6 @@ public class PompeServiceImpl implements PompeService {
         return pompeRepository.findByEnServiceTrue().size();
     }
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public PompeDto updatePompeAddNive(Long id, double nive) {
-        try {
-            System.out.println(">>> updatePompeAddNive: id=" + id + ", quantity=" + nive);
-            Pompe pompe = pompeRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Pompe not found: " + id));
-            BigDecimal niveBD = BigDecimal.valueOf(nive);
-            BigDecimal currentLevel = pompe.getNiveauActuel() != null ? pompe.getNiveauActuel() : BigDecimal.ZERO;
-            BigDecimal maxCapacity = pompe.getCapaciteMax() != null ? pompe.getCapaciteMax() : BigDecimal.valueOf(Double.MAX_VALUE);
-            if (maxCapacity.compareTo(currentLevel.add(niveBD)) < 0) {
-                String errorMsg = "CAPACITY_EXCEEDED: La quantité (" + niveBD + " L) dépasse la capacité maximale (" + maxCapacity + " L). Niveau actuel: " + currentLevel + " L.";
-                System.err.println("!!! " + errorMsg);
-                throw new IllegalArgumentException(errorMsg);
-            }
-            pompe.setNiveauActuel(currentLevel.add(niveBD));
-            Pompe updated = pompeRepository.save(pompe);
-            try {
-                JournalAuditDto audit = new JournalAuditDto();
-                audit.setTypeAction("POMPE_ADD_LEVEL");
-                audit.setDescription("Ajout de " + nive + " litres à la pompe " + pompe.getCodePompe() + " (Nouveau niveau: " + pompe.getNiveauActuel() + ")");
-                if (pompe.getStation() != null && pompe.getStation().getId() != null) {
-                    audit.setStationId(pompe.getStation().getId());
-                } else {
-                    audit.setStationId(null);
-                }
-                journalAuditService.createJournal(audit);
-            } catch (Exception auditEx) {
-                System.err.println("!!! WARNING: Failed to create audit log for pompe add level: " + auditEx.getMessage());
-            }
-            System.out.println("<<< updatePompeAddNive SUCCESS");
-            return pompeMapper.toDto(updated);
-        } catch (IllegalArgumentException e) {
-            System.err.println("!!! VALIDATION ERROR in updatePompeAddNive: " + e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            System.err.println("!!! UNEXPECTED ERROR in updatePompeAddNive: " + e.getClass().getName() + " - " + e.getMessage());
-            e.printStackTrace();
-            throw e; 
-        }
-    }
-    @Override
     public Long getStationIdByPompe(Long id) {
         try {
             return pompeRepository.findById(id)
@@ -165,13 +135,104 @@ public class PompeServiceImpl implements PompeService {
                         if (p.getStation() != null) {
                             return p.getStation().getId();
                         }
-                        System.err.println("!!! WARNING: Pompe " + id + " has no station assigned.");
+                        log.warn("!!! WARNING: Pompe {} has no station assigned.", id);
                         return null;
                     })
                     .orElse(null);
-        } catch (Exception e) {
-            System.err.println("!!! ERROR in getStationIdByPompe: " + e.getMessage());
+         } catch (Exception e) {
+            log.error("!!! ERROR in getStationIdByPompe: {}", e.getMessage(), e);
             return null;
         }
+
     }
+
+    @Override
+    @Transactional
+    public PompeDto ajouterCarburant(Long id, double quantity) {
+        Pompe pompe = pompeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pompe non trouvée: " + id));
+
+        if (!Boolean.TRUE.equals(pompe.getEnService())) {
+            throw new IllegalStateException("La pompe " + pompe.getCodePompe() + " n'est pas en service.");
+        }
+
+        BigDecimal quantityBD = BigDecimal.valueOf(quantity);
+        BigDecimal newNiveau = pompe.getNiveauActuel().add(quantityBD);
+        if (newNiveau.compareTo(pompe.getCapaciteMax()) > 0) {
+            throw new IllegalArgumentException("La quantité dépasse la capacité maximale de la pompe (" + pompe.getCapaciteMax() + " L).");
+        }
+
+        List<ApprovisionnementCarburant> supplies = approvisionnementCarburantRepository
+                .findByStation_IdAndTypeCarburantAndQuantiteDisponibleGreaterThanOrderByDateApprovisionnementAsc(
+                        pompe.getStation().getId(),
+                        pompe.getTypeCarburant(),
+                        0.0
+                );
+
+        if (supplies.isEmpty()) {
+            throw new RuntimeException("Aucun stock disponible pour le carburant: " + pompe.getTypeCarburant());
+        }
+
+        double totalStock = supplies.stream()
+                .mapToDouble(a -> a.getQuantiteDisponible() != null ? a.getQuantiteDisponible() : 0.0)
+                .sum();
+        
+        if (totalStock < quantity) {
+            throw new RuntimeException("Stock insuffisant. Disponible: " + String.format("%.2f", totalStock) + " L. Demandé: " + quantity + " L");
+        }
+
+        BigDecimal remainingToDeduct = quantityBD;
+        for (ApprovisionnementCarburant supply : supplies) {
+            if (remainingToDeduct.compareTo(BigDecimal.ZERO) <= 0) break;
+
+            BigDecimal disponible = BigDecimal.valueOf(supply.getQuantiteDisponible() != null ? supply.getQuantiteDisponible() : 0.0);
+            if (disponible.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            if (disponible.compareTo(remainingToDeduct) >= 0) {
+                supply.setQuantiteDisponible(disponible.subtract(remainingToDeduct).doubleValue());
+                remainingToDeduct = BigDecimal.ZERO;
+            } else {
+                // Current supply is fully consumed
+                remainingToDeduct = remainingToDeduct.subtract(disponible);
+                supply.setQuantiteDisponible(0.0);
+            }
+            approvisionnementCarburantRepository.save(supply);
+        }
+
+        pompe.setNiveauActuel(newNiveau);
+        Pompe updated = pompeRepository.save(pompe);
+
+        JournalAuditDto audit = new JournalAuditDto();
+        audit.setTypeAction("POMPE_RECHARGE");
+        audit.setDescription("Remplissage pompe " + updated.getCodePompe() + " de " + quantity + " L (Déduction stock FIFO)");
+        audit.setStationId(updated.getStation().getId());
+        journalAuditService.createJournal(audit);
+
+        return pompeMapper.toDto(updated);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public double getAvailableStock(Long stationId, com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant type) {
+        return approvisionnementCarburantRepository
+                .findByStation_IdAndTypeCarburantAndQuantiteDisponibleGreaterThanOrderByDateApprovisionnementAsc(stationId, type, 0.0)
+                .stream()
+                .mapToDouble(a -> a.getQuantiteDisponible() != null ? a.getQuantiteDisponible() : 0.0)
+                .sum();
+    }
+
+
+
+
+
+    @Override
+    public     List<PompeDto> getPompsByType(TypeCarburant type)
+    {
+        return  pompeRepository.findAll()
+                .stream().filter(a->a.getTypeCarburant().equals(type))
+                .map(pompeMapper::toDto)
+                .toList();
+    }
+
+
 }

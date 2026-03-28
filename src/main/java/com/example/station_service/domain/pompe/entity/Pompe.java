@@ -1,4 +1,5 @@
 package com.example.station_service.domain.pompe.entity;
+
 import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
 import com.example.station_service.domain.station.entity.Station;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+
 @Entity
 @Table(name = "pompe")
 @Data
@@ -32,7 +34,4 @@ public class Pompe {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id", nullable = false)
     private Station station;
-    public boolean isDisponible() {
-        return Boolean.TRUE.equals(enService) && niveauActuel.compareTo(BigDecimal.ZERO) > 0;
-    }
 }

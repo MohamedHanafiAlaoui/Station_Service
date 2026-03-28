@@ -1,15 +1,19 @@
 package com.example.station_service.domain.pompe.controller;
+import com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant;
 import com.example.station_service.domain.pompe.dto.PompeDto;
 import com.example.station_service.domain.pompe.service.PompeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+@Slf4j
 @RestController
 @RequestMapping("/api/pompes")
 @RequiredArgsConstructor
 public class PompeController {
+
     private final PompeService pompeService;
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -65,9 +69,10 @@ public class PompeController {
                     "(hasRole('EMPLOYE') and @securityService.isUserOfStation(authentication, @pompeService.getStationIdByPompe(#id)))"
     )
     public ResponseEntity<PompeDto> addFuel(@PathVariable Long id, @RequestParam double quantity) {
-        System.out.println("--> CONTROLLER: addFuel request received. pompeId=" + id + ", quantity=" + quantity);
-        PompeDto result = pompeService.updatePompeAddNive(id, quantity);
-        System.out.println("<-- CONTROLLER: addFuel success.");
+        log.info("--> CONTROLLER: addFuel (ajouterCarburant) request received. pompeId={}, quantity={}", id, quantity);
+        PompeDto result = pompeService.ajouterCarburant(id, quantity);
+        log.info("<-- CONTROLLER: addFuel success.");
+
         return ResponseEntity.ok(result);
     }
     @GetMapping("/filter/niveau")
@@ -79,5 +84,11 @@ public class PompeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> countActivePompes() {
         return ResponseEntity.ok(pompeService.countActivePompes());
+    }
+
+    @GetMapping("type/{type}")
+    public ResponseEntity<List<PompeDto>> getpomstype(@PathVariable TypeCarburant type)
+    {
+        return  ResponseEntity.ok(pompeService.getPompsByType(type));
     }
 }
