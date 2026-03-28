@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+
 public interface VenteCarburantService {
     Page<VenteCarburantDto> getVentesByStationAndPeriod(Long stationId, LocalDate start, LocalDate end, Pageable pageable);
     Page<VenteCarburantDto> getVentesByStationAndPompeAndPeriod(Long stationId, Long pompeId, LocalDate start, LocalDate end, Pageable pageable);

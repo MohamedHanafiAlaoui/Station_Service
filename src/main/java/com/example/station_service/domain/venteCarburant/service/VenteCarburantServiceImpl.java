@@ -18,6 +18,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
@@ -37,10 +42,10 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
             return venteCarburantRepository.findByStationIdAndDateVenteBetween(stationId, startDT, endDT, pageable)
                     .map(mapper::toDto);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in getVentesByStationAndPeriod: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in getVentesByStationAndPeriod: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @Transactional(readOnly = true)
@@ -51,10 +56,10 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
             return venteCarburantRepository.findByStationIdAndPompeIdAndDateVenteBetween(stationId, pompeId, startDT, endDT, pageable)
                     .map(mapper::toDto);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in getVentesByStationAndPompeAndPeriod: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in getVentesByStationAndPompeAndPeriod: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @Transactional(readOnly = true)
@@ -86,29 +91,58 @@ public class VenteCarburantServiceImpl implements VenteCarburantService {
     @Transactional
     public VenteCarburantDto saveVente(VenteCarburantDto venteDTO) {
         VenteCarburant entity = mapper.toEntity(venteDTO);
+        
         if (venteDTO.getPompeId() == null) {
             throw new RuntimeException("PompeId is required");
         }
         Pompe pompe = pompeRepository.findById(venteDTO.getPompeId())
                 .orElseThrow(() -> new RuntimeException("Pompe not found"));
+        
+        // 1. Vérifier le stock de la pompe
+        if (pompe.getNiveauActuel() == null || pompe.getNiveauActuel().compareTo(entity.getQuantite()) < 0) {
+            throw new RuntimeException("Niveau de carburant insuffisant dans la pompe " + pompe.getCodePompe() 
+                + ". Disponible: " + (pompe.getNiveauActuel() != null ? pompe.getNiveauActuel() : "0") + " L");
+        }
+
+        // 2. Déduire du stock de la pompe
+        pompe.setNiveauActuel(pompe.getNiveauActuel().subtract(entity.getQuantite()));
+        pompeRepository.save(pompe);
+
         entity.setPompe(pompe);
+        entity.setStation(pompe.getStation()); // S'assurer que la station est liée
+
         if (venteDTO.getClientId() == null) {
             throw new RuntimeException("ClientId is required");
         }
         Client client = clientRepository.findById(venteDTO.getClientId())
                 .orElseThrow(() -> new RuntimeException("Client not found"));
         entity.setClient(client);
-        BigDecimal montant = pompe.getPrixParLitre().multiply(entity.getQuantite());
+
+        // Calculer le montant si non fourni
+        if (entity.getMontantPaye() == null || entity.getMontantPaye().compareTo(BigDecimal.ZERO) == 0) {
+            BigDecimal montant = pompe.getPrixParLitre().multiply(entity.getQuantite());
+            entity.setMontantPaye(montant);
+        }
+        
+        if (entity.getPrixUnitaire() == null) {
+            entity.setPrixUnitaire(pompe.getPrixParLitre());
+        }
+
         VenteCarburant saved = venteCarburantRepository.save(entity);
+
         JournalAuditDto audit = new JournalAuditDto();
         audit.setTypeAction("VENTE_CARBURANT");
-        audit.setDescription("Vente de " + saved.getQuantite() + " litres via pompe " + pompe.getCodePompe() + " (Client: " + client.getNom() + ")");
+        audit.setDescription("Vente de " + saved.getQuantite() + " litres via pompe " + pompe.getCodePompe() 
+            + " (Nouveau niveau pompe: " + pompe.getNiveauActuel() + " L)");
         audit.setStationId(pompe.getStation().getId());
+        
         try {
             journalAuditService.createJournal(audit);
         } catch (Exception auditEx) {
-            System.err.println("!!! WARNING: Failed to create audit log for vente: " + auditEx.getMessage());
+            log.warn("!!! WARNING: Failed to create audit log for vente: {}", auditEx.getMessage());
         }
+
+
         return mapper.toDto(saved);
     }
     @Override

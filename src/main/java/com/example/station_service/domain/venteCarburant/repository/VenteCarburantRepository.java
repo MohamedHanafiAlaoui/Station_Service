@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.util.List;
+
 @Repository
 public interface VenteCarburantRepository extends JpaRepository<VenteCarburant, Long> {
     @EntityGraph(attributePaths = {"pompe", "client", "station"})
