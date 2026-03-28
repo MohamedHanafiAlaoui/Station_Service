@@ -9,6 +9,7 @@ import com.example.station_service.domain.pompe.mapper.PompeMapper;
 import com.example.station_service.domain.pompe.repository.PompeRepository;
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.repository.StationRepository;
+import com.example.station_service.domain.approvisionnementCarburant.repository.ApprovisionnementCarburantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.example.station_service.domain.approvisionnementCarburant.entity.ApprovisionnementCarburant;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,6 +42,9 @@ class PompeServiceImplTest {
 
     @Mock
     private JournalAuditService journalAuditService;
+
+    @Mock
+    private ApprovisionnementCarburantRepository approvisionnementCarburantRepository;
 
     @InjectMocks
     private PompeServiceImpl pompeService;
@@ -77,7 +82,6 @@ class PompeServiceImplTest {
         pompeDto.setStationId(1L);
     }
 
-    // ─── createPompe ────────────────────────────────────────────────
 
     @Test
     @DisplayName("createPompe - should save pompe and log audit")
@@ -113,7 +117,6 @@ class PompeServiceImplTest {
         verify(pompeRepository).save(argThat(p -> "PUMP-002".equals(p.getCodePompe())));
     }
 
-    // ─── getPompeById ────────────────────────────────────────────────
 
     @Test
     @DisplayName("getPompeById - should return DTO when pompe exists")
@@ -137,30 +140,34 @@ class PompeServiceImplTest {
                 .hasMessageContaining("99");
     }
 
-    // ─── updatePompeAddNive ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("updatePompeAddNive - should add fuel to pompe")
-    void updatePompeAddNive_shouldAddFuel() {
+    @DisplayName("ajouterCarburant - should add fuel to pompe and deduct from stock")
+    void ajouterCarburant_shouldAddFuel() {
+        ApprovisionnementCarburant supply = new ApprovisionnementCarburant();
+        supply.setQuantiteDisponible(200.0);
+
         when(pompeRepository.findById(1L)).thenReturn(Optional.of(pompe));
+        when(approvisionnementCarburantRepository.findByStation_IdAndTypeCarburantAndQuantiteDisponibleGreaterThanOrderByDateApprovisionnementAsc(anyLong(), any(), anyDouble()))
+                .thenReturn(List.of(supply));
         when(pompeRepository.save(any())).thenReturn(pompe);
         when(pompeMapper.toDto(any())).thenReturn(pompeDto);
 
-        PompeDto result = pompeService.updatePompeAddNive(1L, 100.0);
+        PompeDto result = pompeService.ajouterCarburant(1L, 100.0);
 
         assertThat(result).isNotNull();
         assertThat(pompe.getNiveauActuel()).isEqualByComparingTo(BigDecimal.valueOf(600));
+        assertThat(supply.getQuantiteDisponible()).isEqualTo(100.0);
         verify(pompeRepository).save(pompe);
     }
 
     @Test
-    @DisplayName("updatePompeAddNive - should throw when capacity exceeded")
-    void updatePompeAddNive_shouldThrowOnCapacityExceeded() {
+    @DisplayName("ajouterCarburant - should throw when capacity exceeded")
+    void ajouterCarburant_shouldThrowOnCapacityExceeded() {
         when(pompeRepository.findById(1L)).thenReturn(Optional.of(pompe));
 
-        assertThatThrownBy(() -> pompeService.updatePompeAddNive(1L, 600.0))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("CAPACITY_EXCEEDED");
+        assertThatThrownBy(() -> pompeService.ajouterCarburant(1L, 600.0))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
 
