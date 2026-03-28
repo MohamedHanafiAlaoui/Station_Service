@@ -24,4 +24,5 @@ public class ClientDto {
     @PositiveOrZero
     private BigDecimal solde;
     private Boolean actif;
+    private String password;
 }
