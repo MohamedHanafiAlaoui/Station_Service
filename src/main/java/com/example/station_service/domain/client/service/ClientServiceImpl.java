@@ -6,39 +6,63 @@ import com.example.station_service.domain.client.mapper.ClientMapper;
 import com.example.station_service.domain.client.repository.ClientRepository;
 import com.example.station_service.domain.journalAudit.dto.JournalAuditDto;
 import com.example.station_service.domain.journalAudit.service.JournalAuditService;
+import com.example.station_service.domain.user.entity.enums.UserRole;
+import com.example.station_service.domain.venteCarburant.entity.VenteCarburant;
+import com.example.station_service.domain.venteCarburant.repository.VenteCarburantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.crypto.password.PasswordEncoder;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
+
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
     private final JournalAuditService journalAuditService;
     private final BadgeService badgeService;
+    private final VenteCarburantRepository  venteCarburantRepository;
+    private final PasswordEncoder passwordEncoder;
     @Override
     @org.springframework.transaction.annotation.Transactional
     public ClientDto createClient(ClientDto dto) {
         try {
             if (dto.getBadgeRFID() == null || dto.getBadgeRFID().trim().isEmpty()) {
                 dto.setBadgeRFID(badgeService.generateUniqueRFID());
-                System.out.println(">>> Generated automatic RFID for new client: " + dto.getBadgeRFID());
+                log.debug(">>> Generated automatic RFID for new client: {}", dto.getBadgeRFID());
             }
+
             Client entity = clientMapper.toEntity(dto);
+            entity.setActif(true);
+            if (entity.getSolde() == null) {
+                entity.setSolde(BigDecimal.ZERO);
+            }
+            if (entity.getRole() == null) {
+                entity.setRole(UserRole.CLIENT);
+            }
+            
+            String generatedPassword = UUID.randomUUID().toString().substring(0, 8);
+            entity.setPassword(passwordEncoder.encode(generatedPassword));
+            
             Client saved = clientRepository.save(entity);
             JournalAuditDto audit = new JournalAuditDto();
             audit.setTypeAction("CREATE_CLIENT");
             audit.setDescription("Création du client: " + saved.getNom() + " " + saved.getPrenom() + " (RFID: " + saved.getBadgeRFID() + ")");
             audit.setStationId(null);
             journalAuditService.createJournal(audit);
-            return clientMapper.toDto(saved);
+            
+            ClientDto resultDto = clientMapper.toDto(saved);
+            resultDto.setPassword(generatedPassword);
+            return resultDto;
         } catch (Exception e) {
-            System.err.println("!!! ERROR in createClient: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in createClient: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -62,10 +86,10 @@ public class ClientServiceImpl implements ClientService {
             journalAuditService.createJournal(audit);
             return clientMapper.toDto(updated);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in updateClient: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in updateClient: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -83,44 +107,45 @@ public class ClientServiceImpl implements ClientService {
             audit.setStationId(null);
             journalAuditService.createJournal(audit);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in rechargeSolde: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in rechargeSolde: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @org.springframework.transaction.annotation.Transactional
     public void deleteClient(Long id) {
         try {
-            System.out.println(">>> Attempting soft-delete for client ID: " + id);
+            log.debug(">>> Attempting soft-delete for client ID: {}", id);
             Client client = clientRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Client not found: " + id));
-            System.out.println(">>> Client found: " + client.getNom() + ". Setting actif=false");
+            log.debug(">>> Client found: {}. Setting actif=false", client.getNom());
             client.setActif(false);
             if (client.getBadgeRFID() != null) {
                 String oldRfid = client.getBadgeRFID();
                 client.setBadgeRFID(oldRfid + "_DEL_" + System.currentTimeMillis());
-                System.out.println(">>> Updated RFID from " + oldRfid + " to " + client.getBadgeRFID());
+                log.debug(">>> Updated RFID from {} to {}", oldRfid, client.getBadgeRFID());
             }
             clientRepository.save(client);
-            System.out.println(">>> Client soft-deleted successfully in DB");
+            log.debug(">>> Client soft-deleted successfully in DB");
+
             JournalAuditDto audit = new JournalAuditDto();
             audit.setTypeAction("DELETE_CLIENT");
             audit.setDescription("Suppression (SOFT) du client: " + client.getNom() + " " + client.getPrenom());
             audit.setStationId(null);
             journalAuditService.createJournal(audit);
-            System.out.println("<<< deleteClient SUCCESS");
+            log.debug("<<< deleteClient SUCCESS");
         } catch (Exception e) {
-            System.err.println("!!! ERROR in deleteClient: " + (e != null ? e.getMessage() : "null exception"));
-            if (e != null) e.printStackTrace();
+            log.error("!!! ERROR in deleteClient: {}", (e != null ? e.getMessage() : "null exception"), e);
             throw e;
         }
+
     }
     @Override
     @org.springframework.transaction.annotation.Transactional
     public void restoreClient(Long id) {
         try {
-            System.out.println(">>> Attempting to restore client ID: " + id);
+            log.debug(">>> Attempting to restore client ID: {}", id);
             Client client = clientRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Client not found: " + id));
             client.setActif(true);
@@ -128,20 +153,21 @@ public class ClientServiceImpl implements ClientService {
                 String currentRfid = client.getBadgeRFID();
                 String restoredRfid = currentRfid.split("_DEL_")[0];
                 client.setBadgeRFID(restoredRfid);
-                System.out.println(">>> Restored RFID from " + currentRfid + " to " + restoredRfid);
+                log.debug(">>> Restored RFID from {} to {}", currentRfid, restoredRfid);
             }
+
             clientRepository.save(client);
             JournalAuditDto audit = new JournalAuditDto();
             audit.setTypeAction("RESTORE_CLIENT");
             audit.setDescription("Restauration du client: " + client.getNom() + " " + client.getPrenom());
             audit.setStationId(null);
             journalAuditService.createJournal(audit);
-            System.out.println("<<< restoreClient SUCCESS");
+            log.debug("<<< restoreClient SUCCESS");
         } catch (Exception e) {
-            System.err.println("!!! ERROR in restoreClient: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in restoreClient: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     public ClientDto getClientById(Long id) {
@@ -165,4 +191,7 @@ public class ClientServiceImpl implements ClientService {
                 .map(clientMapper::toDto)
                 .toList();
     }
+
+
+
 }
