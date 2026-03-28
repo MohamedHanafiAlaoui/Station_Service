@@ -8,12 +8,17 @@ import com.example.station_service.domain.journalAudit.service.JournalAuditServi
 import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ApprovisionnementCarburantServiceImpl implements ApprovisionnementCarburantService {
+
     private final ApprovisionnementCarburantRepository repository;
     private final StationRepository stationRepository;
     private final ApprovisionnementCarburantMapper mapper;
@@ -23,13 +28,22 @@ public class ApprovisionnementCarburantServiceImpl implements ApprovisionnementC
         ApprovisionnementCarburant entity = mapper.toEntity(dto);
         Station station = stationRepository.findById(dto.getStationId())
                 .orElseThrow(() -> new RuntimeException("Station not found"));
+        
+        // Calculate total available stock BEFORE this supply
+        Double currentStock = repository.sumQuantiteDisponible(station.getId(), entity.getTypeCarburant());
+        if (currentStock == null) currentStock = 0.0;
+        
         entity.setStation(station);
         entity.setDateApprovisionnement(LocalDate.now());
+        entity.setQuantiteDisponible(entity.getQuantite());
+        entity.setNiveauAvant(currentStock);                // Snapshot Before
+        entity.setNiveauApres(currentStock + entity.getQuantite()); // Snapshot After
+
         ApprovisionnementCarburant saved = repository.save(entity);
         JournalAuditDto audit = new JournalAuditDto();
         audit.setTypeAction("APPROVISIONNEMENT_CARBURANT");
         audit.setDescription(
-                "Approvisionnement de " + saved.getQuantite() + " litres (" + saved.getTypeCarburant() + ")"
+                "Approvisionnement de " + saved.getQuantite() + " L (" + saved.getTypeCarburant() + "). Stock: " + saved.getNiveauAvant() + " -> " + saved.getNiveauApres() + " L"
         );
         audit.setStationId(station.getId());
         journalAuditService.createJournal(audit);
@@ -65,5 +79,28 @@ public class ApprovisionnementCarburantServiceImpl implements ApprovisionnementC
                 .stream()
                 .map(mapper::toDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createMockStock(Long stationId, com.example.station_service.domain.approvisionnementCarburant.entity.enums.TypeCarburant type) {
+        Station station = stationRepository.findById(stationId)
+                .orElseThrow(() -> new RuntimeException("Station not found"));
+
+        // Calculate snapshots for mock record
+        Double currentStock = repository.sumQuantiteDisponible(stationId, type);
+        if (currentStock == null) currentStock = 0.0;
+
+        ApprovisionnementCarburant mock = new ApprovisionnementCarburant();
+        mock.setQuantite(5000.0);
+        mock.setQuantiteDisponible(5000.0);
+        mock.setTypeCarburant(type);
+        mock.setStation(station);
+        mock.setDateApprovisionnement(LocalDate.now());
+        mock.setNiveauAvant(currentStock);
+        mock.setNiveauApres(currentStock + 5000.0);
+
+        repository.save(mock);
+        log.info(">>> MOCK STOCK CREATED: 5000L. Stock {} -> {} L", currentStock, mock.getNiveauApres());
     }
 }
