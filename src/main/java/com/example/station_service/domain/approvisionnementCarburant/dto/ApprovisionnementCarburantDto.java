@@ -17,5 +17,7 @@ public class ApprovisionnementCarburantDto {
     @NotNull(message = "L'identifiant de la station est obligatoire")
     private Long stationId;
     private java.time.LocalDate dateApprovisionnement;
+    private Double niveauAvant;
     private Double niveauApres;
+    private Double quantiteDisponible;
 }
