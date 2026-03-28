@@ -9,13 +9,16 @@ import com.example.station_service.domain.station.entity.Station;
 import com.example.station_service.domain.station.mapper.StationMapper;
 import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StationServiceImpl implements StationService {
+
     private final StationRepository stationRepository;
     private final PompeRepository pompeRepository;
     private final StationMapper stationMapper;
@@ -108,7 +111,7 @@ public class StationServiceImpl implements StationService {
                 p.setEnService(active);
             }
             pompeRepository.saveAll(pompes);
-            System.out.println(">>> Cascaded ACTIVE=" + active + " to " + pompes.size() + " pumps for station: " + station.getNom());
+            log.info(">>> Cascaded ACTIVE={} to {} pumps for station: {}", active, pompes.size(), station.getNom());
         }
         JournalAuditDto audit = new JournalAuditDto();
         audit.setTypeAction(active ? "ACTIVATE_STATION" : "DEACTIVATE_STATION");

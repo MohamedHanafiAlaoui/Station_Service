@@ -5,14 +5,17 @@ import com.example.station_service.domain.journalAudit.mapper.JournalAuditMapper
 import com.example.station_service.domain.journalAudit.repository.JournalAuditRepository;
 import com.example.station_service.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JournalAuditServiceImpl implements JournalAuditService {
+
     private final JournalAuditRepository journalAuditRepository;
     private final StationRepository stationRepository;
     private final JournalAuditMapper mapper;
@@ -29,10 +32,10 @@ public class JournalAuditServiceImpl implements JournalAuditService {
             return journalAuditRepository.findByStationIdAndDateActionBetween(stationId, start, end, pageable)
                     .map(mapper::toDto);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in getByStationAndPeriod: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in getByStationAndPeriod: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @Transactional(readOnly = true)
@@ -41,10 +44,10 @@ public class JournalAuditServiceImpl implements JournalAuditService {
             return journalAuditRepository.findByDateActionBetween(start, end, pageable)
                     .map(mapper::toDto);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in getByPeriod: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in getByPeriod: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @Transactional(readOnly = true)
@@ -53,16 +56,16 @@ public class JournalAuditServiceImpl implements JournalAuditService {
             return journalAuditRepository.findByTypeActionAndDateActionBetween(typeAction, start, end, pageable)
                     .map(mapper::toDto);
         } catch (Exception e) {
-            System.err.println("!!! ERROR in getByTypeActionAndPeriod: " + e.getMessage());
-            e.printStackTrace();
+            log.error("!!! ERROR in getByTypeActionAndPeriod: {}", e.getMessage(), e);
             throw e;
         }
+
     }
     @Override
     @Transactional
     public void createJournal(JournalAuditDto dto) {
         try {
-            System.out.println(">>> createJournal: type=" + dto.getTypeAction() + ", stationId=" + dto.getStationId());
+            log.debug(">>> createJournal: type={}, stationId={}", dto.getTypeAction(), dto.getStationId());
             JournalAudit journalAudit = mapper.toEntity(dto);
             journalAudit.setStation(null);
             if (journalAudit.getDateAction() == null) {
@@ -72,11 +75,11 @@ public class JournalAuditServiceImpl implements JournalAuditService {
                 stationRepository.findById(dto.getStationId()).ifPresent(journalAudit::setStation);
             }
             journalAuditRepository.save(journalAudit);
-            System.out.println("<<< createJournal SUCCESS");
+            log.debug("<<< createJournal SUCCESS");
         } catch (Exception e) {
-            System.err.println("!!! ERROR in createJournal: " + (e != null ? e.getMessage() : "null exception"));
-            if (e != null) e.printStackTrace();
+            log.error("!!! ERROR in createJournal: {}", (e != null ? e.getMessage() : "null exception"), e);
             throw e;
         }
+
     }
 }
